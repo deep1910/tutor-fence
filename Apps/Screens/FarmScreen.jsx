@@ -1,8 +1,11 @@
-import { View, Text, TextInput ,Button, TouchableOpacity} from 'react-native'
+import { View, Text, TextInput ,Image, Button, TouchableOpacity} from 'react-native'
 import React, {useState, useEffect} from 'react'
 import MapView, {Marker,Circle,  Polygon,PROVIDER_GOOGLE} from 'react-native-maps'
 import * as Location from 'expo-location';
 import * as turf from '@turf/turf';
+// import {Ionicons} from '@expo/vector-icons'
+import {ref, onValue} from 'firebase/database'
+import { db } from '../../firebaseConfig';
 
 // let areacolor = "rgba(100, 200, 200, 0.5)";
 
@@ -10,26 +13,48 @@ import * as turf from '@turf/turf';
 export default function FarmScreen() {
    
    const [coordinates , setCoordinates] = useState([]); 
-   const [currentLocation, setCurrentLocation] = useState({});
+   const [currentLocation, setCurrentLocation] = useState({latitude: 20.77940, longitude:76.67873});
+  //  const [currentLocation, setCurrentLocation] = useState({});
    const [area, setArea] = useState(0);
    const [areacolor, setAreacolor] = useState("rgba(100, 200, 200, 0.5)");
    
-  //  useEffect(() => {
-  //   if (hasLocationPermission()) { 
-  //     console.log(hasLocationPermission())
-  //     // You need to implement this function to check for location permissions
-  //     Geolocation.getCurrentPosition(
-  //       (position) => {
-  //         const { latitude, longitude } = position.coords;
-  //         setCurrentLocation({ latitude, longitude });
-  //       },
-  //       (error) => {
-  //         // Handle error
-  //       },
-  //       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-  //     );
-  //   }
-  // }, []);
+
+   const [fetchData, setfetchData] = useState([]);
+
+   useEffect(() => {
+     const starcountRef = ref(db, 'devicelocations/');
+     onValue(starcountRef, (snapshot) => {
+       const data = snapshot.val();
+       const newPosts = Object.keys(data).map((key) => ({
+             id:key,
+             ...data[key],
+       }))
+       console.log(data);
+       setfetchData(newPosts);
+       console.log(newPosts);
+      //  console.log(newPosts[0].id);
+      //  console.log(newPosts[0].latitude);
+     })
+   }, [])
+ 
+  // console.log("Deep loaded success" + fetchData);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   useEffect(() => {
     (async () => {
       
@@ -39,11 +64,11 @@ export default function FarmScreen() {
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      console.log(location);
+      let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
+      // console.log(location);
       setCurrentLocation({latitude:location.coords.latitude, longitude:location.coords.longitude});
     })();
-  }, []);
+  }, [currentLocation]);
 
   useEffect(()=>{
     if(coordinates.length === 4){
@@ -63,7 +88,7 @@ export default function FarmScreen() {
   const saveBoundary = (coordinates) => { 
     console.log(coordinates);
     // setCoordinates(coordinates);
-     setAreacolor("#90ee90");
+     setAreacolor("rgba(139, 226,139, 0.8)");
   }
 
 
@@ -74,13 +99,14 @@ export default function FarmScreen() {
         <Text style={{fontSize:20, paddingLeft:20}}>Map your Field</Text>
        <TextInput placeholder="Enter your Location" style={{ padding:20,marginTop: 20,width:'100%',height:60, borderWidth:2, fontSize:20}}/>
        <MapView
+        userInterfaceStyle='dark'
         mapType='hybrid'
         style={{ flex: 1, 
             height:80,
         }}
         
         provider={PROVIDER_GOOGLE}
-        showsUserLocation
+        showsUserLocation={true}
         initialRegion={{
           latitude: 20.77940,
           longitude: 76.67873,
@@ -107,7 +133,18 @@ export default function FarmScreen() {
           title="My Location"
         />
       )}
-        {/* <Marker
+
+     { fetchData.length != 0  &&
+      <Marker
+      coordinate={{latitude:fetchData[0].latitude , longitude:fetchData[0].longitude}}
+      >
+         <Image source={require("../../assets/favicon.png")} style={{width:35, height:35}}/>
+        
+
+      </Marker>
+      
+       }
+         {/* <Marker
         coordinate={{ latitude: 20.77940, longitude:76.67873 }}
         title="My Marker"
         description="Some description"
@@ -144,9 +181,9 @@ export default function FarmScreen() {
       )}
   
       </MapView>
-      <Text>Area: {area} sq.mt</Text>
+      {area!=0 && <Text style={{fontSize:19, paddingStart:20, padding:10}}>Area: {area * 0.00024711} acres</Text>}
       <View style={{padding:15, alignItems:'center'}}>
-      {areacolor === "#90ee90" ? <TouchableOpacity style={{height:30, width:'50%', backgroundColor:'skyblue'}}>
+      {areacolor === "rgba(139, 226,139, 0.8)" ? <TouchableOpacity style={{height:30, width:'50%', backgroundColor:'skyblue'}}>
              <Text style={{fontSize:24}} >Confirm</Text>
        </TouchableOpacity> :  <TouchableOpacity style={{height:30, width:'50%', backgroundColor:'skyblue'}} onPress={()=>saveBoundary(coordinates)} >
              <Text style={{fontSize:24}} >Save Bondary</Text>

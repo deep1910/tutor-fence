@@ -1,4 +1,4 @@
-import { View, Text, Image, Modal, FlatList, StyleSheet, TouchableOpacity , Button} from 'react-native'
+import { View, Text, Image, Modal, FlatList, StyleSheet,TextInput, TouchableOpacity , Button} from 'react-native'
 import React, { useState } from 'react'
 import {Ionicons} from '@expo/vector-icons'
 
@@ -7,8 +7,10 @@ export default function MapmyfarmScreen({navigation}) {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedValue, setSelectedValue] = useState(null);
-
-    const data = ['Java', 'JavaScript', 'Python', 'C++', 'Ruby'];
+    const [addFieldvalue, setAddFieldvalue] = useState(false);
+    const [data,setData] = useState(['Field1','Field2', 'Field3']);
+    const [dataelement , setDataelement] = useState("");
+    // const data = ['Java', 'JavaScript', 'Python', 'C++', 'Ruby'];
 
     const renderItem = ({ item }) => (
         <TouchableOpacity onPress={() => {
@@ -19,6 +21,19 @@ export default function MapmyfarmScreen({navigation}) {
         </TouchableOpacity>
     );
 
+
+    const addField= () =>{
+        console.log('Data');
+        setAddFieldvalue(true);
+        if(dataelement != ""){
+            setData([...data, dataelement])
+            // return
+        }
+    
+        console.log(data);
+        // setModalVisible(false)
+
+    }
 
 
 
@@ -50,7 +65,8 @@ export default function MapmyfarmScreen({navigation}) {
                                         renderItem={renderItem}
                                         keyExtractor={item => item}
                                     />
-                                    <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                    <TouchableOpacity onPress={() => addField()}>
+                                    {addFieldvalue && <TextInput placeholder="Enter field name" style={{padding:5,width:200,fontSize:20, color:'white', marginBottom:20, backgroundColor:'rgba(135, 207, 145, 0.8)'}} value={dataelement} onChangeText={(text) => setDataelement(text)} /> }
                                         <View style={{display:'flex', gap:10, flexDirection:'row',marginBottom: 30, alignItems:'center'}}>
                                             <Ionicons name="add" size={24}  color="white"/>
                                             <Text style={{fontSize:20, color:'white'}}>Add Field</Text>
